@@ -1,9 +1,9 @@
 
 package eu.doppel_helix.gss_sspi;
 
-import eu.doppel_helix.gss_sspi.util.WinErrorSecMap;
-import eu.doppel_helix.gss_sspi.util.Secur32X;
-import eu.doppel_helix.gss_sspi.util.SspiX;
+import eu.doppel_helix.gss_sspi.internal.util.WinErrorSecMap;
+import eu.doppel_helix.gss_sspi.internal.util.Secur32X;
+import eu.doppel_helix.gss_sspi.internal.util.SspiX;
 import com.sun.jna.platform.win32.Secur32;
 import com.sun.jna.platform.win32.Sspi;
 import com.sun.jna.platform.win32.WinError;

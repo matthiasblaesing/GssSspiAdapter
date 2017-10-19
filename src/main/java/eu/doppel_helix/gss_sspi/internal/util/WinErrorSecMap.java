@@ -1,5 +1,5 @@
 
-package eu.doppel_helix.gss_sspi.util;
+package eu.doppel_helix.gss_sspi.internal.util;
 
 import com.sun.jna.platform.win32.WinError;
 import java.lang.reflect.Field;

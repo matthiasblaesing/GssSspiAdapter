@@ -1,4 +1,4 @@
-package eu.doppel_helix.gss_sspi.util;
+package eu.doppel_helix.gss_sspi.internal.util;
 
 import com.sun.jna.Native;
 import com.sun.jna.Structure;

@@ -4,8 +4,6 @@ package eu.doppel_helix.dev.kerberostest;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.PrintStream;
-import java.io.PrintWriter;
-import java.io.StringWriter;
 
 
 public class SSPICommon {
