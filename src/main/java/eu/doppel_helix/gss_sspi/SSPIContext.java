@@ -45,6 +45,8 @@ import java.io.OutputStream;
 import java.io.IOException;
 import java.security.Provider;
 import java.security.Key;
+import java.util.Base64;
+import javax.security.auth.kerberos.EncryptionKey;
 import javax.security.auth.kerberos.ServicePermission;
 import sun.security.jgss.GSSHeader;
 import sun.security.util.ObjectIdentifier;
@@ -1331,22 +1333,26 @@ abstract class SSPIContext implements GSSContextSpi {
         @Override
         public String toString() {
             return "Session key: etype: " + algorithm + "\n" +
-                    new sun.misc.HexDumpEncoder().encodeBuffer(key);
+                    Base64.getEncoder().encodeToString(key);
         }
     }
 
     /**
      * Return the mechanism-specific attribute associated with {@code type}.
      */
-    @Override
     public Object inquireSecContext(InquireType type)
             throws GSSException {
+        return inquireSecContext(type.name());
+    }
+
+    @Override
+    public Object inquireSecContext(String type) throws GSSException {
         if (!isEstablished()) {
              throw new GSSException(GSSException.NO_CONTEXT, -1,
                      "Security context not established.");
         }
         switch (type) {
-            case KRB5_GET_SESSION_KEY:
+            case "KRB5_GET_SESSION_KEY":
                 SspiX.SecPkgContext_SessionKey keyBuffer = new SecPkgContext_SessionKey();
                 SspiX.SecPkgContext_KeyInfo keyInfo = new SspiX.SecPkgContext_KeyInfo();
                 try {
@@ -1359,12 +1365,30 @@ abstract class SSPIContext implements GSSContextSpi {
                         throw new GSSException(GSSException.UNAVAILABLE, -1, WinErrorSecMap.resolveString(result));
                     }
                     byte[] rawKey = keyBuffer.getSessionKey();
-                    keyBuffer.free();
                     return new SessionKey(rawKey, keyInfo.getEncryptAlgorithmName());
                 } finally {
                     keyBuffer.free();
+                    keyInfo.free();
                 }
-//            case KRB5_GET_TKT_FLAGS:
+            case "KRB5_GET_SESSION_KEY_EX":
+                SspiX.SecPkgContext_SessionKey keyBuffer2 = new SecPkgContext_SessionKey();
+                SspiX.SecPkgContext_KeyInfo keyInfo2 = new SspiX.SecPkgContext_KeyInfo();
+                try {
+                    int result = Secur32X.INSTANCE.QueryContextAttributes(handle, SspiX.SECPKG_ATTR_SESSION_KEY, keyBuffer2);
+                    if (result != WinError.SEC_E_OK) {
+                        throw new GSSException(GSSException.UNAVAILABLE, -1, WinErrorSecMap.resolveString(result));
+                    }
+                    result = Secur32X.INSTANCE.QueryContextAttributes(handle, SspiX.SECPKG_ATTR_KEY_INFO, keyInfo2);
+                    if (result != WinError.SEC_E_OK) {
+                        throw new GSSException(GSSException.UNAVAILABLE, -1, WinErrorSecMap.resolveString(result));
+                    }
+                    byte[] rawKey = keyBuffer2.getSessionKey();
+                    return new EncryptionKey(rawKey, keyInfo2.EncryptAlgorithm);
+                } finally {
+                    keyBuffer2.free();
+                    keyInfo2.free();
+                }
+//            case "KRB5_GET_TKT_FLAGS":
 //                return tktFlags.clone();
 //            case KRB5_GET_AUTHZ_DATA:
 //                if (isInitiator()) {
