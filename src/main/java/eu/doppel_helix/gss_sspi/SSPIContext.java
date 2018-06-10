@@ -596,7 +596,7 @@ abstract class SSPIContext implements GSSContextSpi {
                 Sspi.TimeStamp ptsExpiry = new Sspi.TimeStamp();
                 IntByReference contextAttr = new IntByReference();
 
-                Sspi.SecBufferDesc reply = null;
+                SspiX.ManagedSecBufferDesc reply = null;
                 try {
                     byte[] inputToken = readFromStream(is, mechTokenSize);
                     if (inputToken != null && inputToken.length > 0) {
@@ -604,20 +604,16 @@ abstract class SSPIContext implements GSSContextSpi {
 //                        GSSHeader header = new GSSHeader(new ObjectIdentifier(getMech().toString()), inputToken.length);
 //                        header.encode(baos);
                         baos.write(inputToken);
-                        reply = new Sspi.SecBufferDesc(Sspi.SECBUFFER_TOKEN, baos.toByteArray());
+                        reply = new SspiX.ManagedSecBufferDesc(Sspi.SECBUFFER_TOKEN, baos.toByteArray());
                     }
                 } catch (IOException ex) {
                     throw new RuntimeException(ex);
                 }
 
-                Sspi.SecBufferDesc desc = new Sspi.SecBufferDesc();
-                desc.pBuffers = (SspiX.SecBuffer.ByReference[])
-                        new SspiX.SecBuffer.ByReference()
-                        .toArray(1);
-                desc.pBuffers[0].BufferType = Sspi.SECBUFFER_TOKEN;
-                desc.pBuffers[0].cbBuffer = 0;
-                desc.pBuffers[0].pvBuffer = null;
-                desc.cBuffers = desc.pBuffers.length;
+                SspiX.ManagedSecBufferDesc desc = new SspiX.ManagedSecBufferDesc(1);
+                desc.getBuffer(0).BufferType = Sspi.SECBUFFER_TOKEN;
+                desc.getBuffer(0).cbBuffer = 0;
+                desc.getBuffer(0).pvBuffer = null;
 
                 Sspi.CtxtHandle oldCtx = handle;
                 Sspi.CtxtHandle newCtx = handle;
@@ -625,7 +621,7 @@ abstract class SSPIContext implements GSSContextSpi {
                     newCtx = new Sspi.CtxtHandle();
                 }
 
-                int result = Secur32.INSTANCE.InitializeSecurityContext(
+                int result = Secur32X.INSTANCE.InitializeSecurityContext(
                         myCred.getHandle(),
                         oldCtx,
                         this.peerName.getPrincipalName().toString(),
@@ -652,10 +648,10 @@ abstract class SSPIContext implements GSSContextSpi {
                     System.out.printf("InitializeSecurityContext-Result: %s (%d)%n",
                             WinErrorSecMap.resolveString(result), result);
                 }
-                retVal = desc.getBytes();
+                retVal = desc.getBuffer(0).getBytes();
 
-                if(desc.pBuffers[0].pvBuffer != null) {
-                    Secur32X.INSTANCE.FreeContextBuffer(desc.pBuffers[0].pvBuffer);
+                if(desc.getBuffer(0).pvBuffer != null) {
+                    Secur32X.INSTANCE.FreeContextBuffer(desc.getBuffer(0).pvBuffer);
                 }
 
 //                if (resultToken != null && resultToken.length > 0) {
@@ -787,7 +783,7 @@ abstract class SSPIContext implements GSSContextSpi {
                 Sspi.TimeStamp ptsExpiry = new Sspi.TimeStamp();
                 IntByReference contextAttr = new IntByReference();
 
-                Sspi.SecBufferDesc reply = null;
+                SspiX.ManagedSecBufferDesc reply = null;
                 try {
                     byte[] inputToken = readFromStream(is, mechTokenSize);
                     if (inputToken != null && inputToken.length > 0) {
@@ -805,20 +801,16 @@ abstract class SSPIContext implements GSSContextSpi {
                             header.encode(baos);
                         }
                         baos.write(inputToken);
-                        reply = new Sspi.SecBufferDesc(Sspi.SECBUFFER_TOKEN, baos.toByteArray());
+                        reply = new SspiX.ManagedSecBufferDesc(Sspi.SECBUFFER_TOKEN, baos.toByteArray());
                     }
                 } catch (IOException ex) {
                     throw new RuntimeException(ex);
                 }
 
-                Sspi.SecBufferDesc desc = new Sspi.SecBufferDesc();
-                desc.pBuffers = (SspiX.SecBuffer.ByReference[])
-                        new SspiX.SecBuffer.ByReference()
-                        .toArray(1);
-                desc.pBuffers[0].BufferType = Sspi.SECBUFFER_TOKEN;
-                desc.pBuffers[0].cbBuffer = 0;
-                desc.pBuffers[0].pvBuffer = null;
-                desc.cBuffers = desc.pBuffers.length;
+                SspiX.ManagedSecBufferDesc desc = new SspiX.ManagedSecBufferDesc(1);
+                desc.getBuffer(0).BufferType = Sspi.SECBUFFER_TOKEN;
+                desc.getBuffer(0).cbBuffer = 0;
+                desc.getBuffer(0).pvBuffer = null;
 
                 Sspi.CtxtHandle oldCtx = handle;
                 Sspi.CtxtHandle newCtx = handle;
@@ -826,7 +818,7 @@ abstract class SSPIContext implements GSSContextSpi {
                     newCtx = new Sspi.CtxtHandle();
                 }
 
-                int result = Secur32.INSTANCE.AcceptSecurityContext(
+                int result = Secur32X.INSTANCE.AcceptSecurityContext(
                         myCred.getHandle(),
                         oldCtx,
                         reply,
@@ -850,10 +842,10 @@ abstract class SSPIContext implements GSSContextSpi {
                     System.out.printf("AcceptSecurityContext-Result: %s (%d)%n",
                             WinErrorSecMap.resolveString(result), result);
                 }
-                retVal = desc.getBytes();
+                retVal = desc.getBuffer(0).getBytes();
 
-                if(desc.pBuffers[0].pvBuffer != null) {
-                    Secur32X.INSTANCE.FreeContextBuffer(desc.pBuffers[0].pvBuffer);
+                if(desc.getBuffer(0).pvBuffer != null) {
+                    Secur32X.INSTANCE.FreeContextBuffer(desc.getBuffer(0).pvBuffer);
                 }
 
 //                if (resultToken != null && resultToken.length > 0) {
@@ -883,7 +875,7 @@ abstract class SSPIContext implements GSSContextSpi {
                     stateFromContextAttr(contextAttr.getValue());
                     state = STATE_DONE;
                 }
-                
+
             } else  {
                 // XXX Use logging API?
                 if (SSPIProvider.DEBUG) {
